@@ -64,21 +64,6 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .card-image {
-        width: 150px;
-        height: 200px;
-        object-fit: cover;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .token-image {
-        width: 70px;
-        height: 100px;
-        object-fit: cover;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    }
     .popup {
         display: none;
         position: fixed;
@@ -202,7 +187,7 @@
                 data.forEach(card => {
                     const cardDiv = document.createElement('div');
                     cardDiv.classList.add('card');
-                    cardDiv.innerHTML = `<img class="card-image" src="https://huangmartin.github.io/snapcards.io/img/${card.image_url}" alt="${card.title_en}">`;
+                    cardDiv.innerHTML = `<img src="https://huangmartin.github.io/snapcards.io/img/${card.image_url}" alt="${card.title_en}">`;
                     cardDiv.addEventListener('click', () => showCardPopup(card));
                     output.appendChild(cardDiv);
                 });
@@ -255,7 +240,7 @@
                     if (tokens && tokens.length > 0) {
                         tokenCards.innerHTML = tokens.map(token => `
                             <div class="token-card">
-                                <img class="token-image" src="https://huangmartin.github.io/snapcards.io/img/${token.image_url}" alt="${token.title_en}">
+                                <img src="https://huangmartin.github.io/snapcards.io/img/${token.image_url}" alt="${token.title_en}">
                                 <p class="title" style="text-align:center; margin-top: 5px;">${token.title_tw}</p>
                                 <p class="cost-power" style="text-align:center; margin-top: 5px;">${token.cost} / ${token.power}</p>
                             </div>
