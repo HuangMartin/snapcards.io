@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>MARVEL SNAP卡牌搜尋器</title>
+</head>
+<style>
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        height: 100vh;
+        margin: 0;
+    }
+
+    h1 {
+        text-align: center;
+        padding: 20px 0;
+        margin: 0;
+    }
+
+    #costButtons button {
+        height: 30px;
+        width: 100px;
+        background-color: white;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+        transition: all 0.2s ease;
+    }
+
+    #costButtons button.active {
+        background-color: #488bce;
+        color: white;
+        border: 1px solid #ccc;
+    }
+
+    #content {
+        width: 70%;
+        margin-left: 15%;
+        margin-right: 15%;
+    }
+
+    #cardContainer {
+        margin: 20px auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 16px;
+        justify-content: center;
+    }
+
+    .card {
+        width: 100%;
+        cursor: pointer;
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .card img,
+    .token-card img {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-image {
+        width: 150px;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .token-image {
+        width: 70px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+    .popup {
+        display: none;
+        position: fixed;
+        z-index: 999;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .popup.show {
+        display: flex;
+    }
+
+    .popup-content {
+        background: white;
+        width: 400px;
+        max-height: 90vh;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 5px 30px rgba(0, 0, 0, 0.2);
+        position: relative;
+        overflow-y: auto;
+    }
+
+
+    .close-btn {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-size: 24px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    #tokenSection {
+        background-color: #f0f0f0;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(calc(20% - 10px), 1fr));
+        gap: 10px;
+    }
+
+    .token-card .title {
+        margin-top: 2px;
+    }
+
+    .token-card .cost-power {
+        margin-top: 2px;
+    }
+</style>
+  
+<body>
+    <div id="content">
+        <h1>Supabase 測試資料</h1>
+        <h2>顯示指定費用</h2>
+        <div id="costButtons">
+            <button data-cost="1">-1</button>
+            <button data-cost="2">2</button>
+            <button data-cost="3">3</button>
+            <button data-cost="4">4</button>
+            <button data-cost="5">5</button>
+            <button data-cost="6">6+</button>
+        </div>
+        <div id="cardContainer"></div>
+    </div>
+    <div id="popup" class="popup">
+        <div class="popup-content">
+            <span class="close-btn" onclick="closePopup()">&times;</span>
+            <div class="main-card-info">
+                <h3 id="popupTitle" style="text-align: center;"></h3>
+                <h4 id="popupCostandPower" style="text-align: center;"></h4>
+                <p id="popupCardtext" style="text-align: center;"></p>
+            </div>
+            <div id="tokenSection" style="display: none; margin-top: 20px; padding-top: 5px; padding-left: 10px;">
+                <h4 style="text-align: center;">衍生物 / 法術牌</h4>
+                <div id="tokenCards" style="display: flex; flex-wrap: wrap;gap:7px;"></div>
+            </div>
+        </div>
+    </div>
+    
+    
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        const supabaseUrl = 'https://yprzcpjvhahhgpqsrmpn.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwcnpjcGp2aGFoaGdwcXNybXBuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQxMjE5MTksImV4cCI6MjA1OTY5NzkxOX0._I6R7hZ-x1AerPEOlw5mrM27QMSpKDmnUhFzRy3ysTM';
+        const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+        const output = document.getElementById('cardContainer');
+        const costButtons = document.querySelectorAll('#costButtons button');
+        let activeButton = null;
+
+        async function Fetch(cost) {
+            let query = client
+            .from('Cards')
+            .select('id, title_en, title_tw, cost, power, card_text, token_ids, image_url')
+            .order('cost', { ascending: true })
+            .order('power', { ascending: true })
+            .order('id', { ascending: true });
+
+            if (cost === "1") {
+                query = query.in('cost', [0, 1]);
+            } else if (cost === "6") {
+                query = query.gte('cost', 6);
+            } else if (cost !== "") {
+                query = query.eq('cost', parseInt(cost));
+            }
+
+        const { data, error } = await query;
+
+            if (error) {
+                output.textContent = '⚠️ 發生錯誤：' + JSON.stringify(error, null, 2);
+                console.error(error);
+            } else {
+                output.innerHTML = ''; // 先清空
+                data.forEach(card => {
+                    const cardDiv = document.createElement('div');
+                    cardDiv.classList.add('card');
+                    cardDiv.innerHTML = `<img class="card-image" src="https://huangmartin.github.io/snapcards.io/${card.image_url}" alt="${card.title_en}">`;
+                    cardDiv.addEventListener('click', () => showCardPopup(card));
+                    output.appendChild(cardDiv);
+                });
+            }
+            console.log(data);
+        }
+        costButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const selectedCost = btn.dataset.cost;
+
+                if (btn === activeButton) {
+                btn.classList.remove('active');
+                activeButton = null;
+                Fetch(""); // 撈全部
+                } else {
+                costButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeButton = btn;
+                Fetch(selectedCost);
+                }
+            });
+        });
+
+        // 初次載入全部
+        Fetch("");
+
+        async function showCardPopup(card) {
+            document.getElementById('popupTitle').textContent = card.title_tw;
+            document.getElementById('popupCostandPower').textContent = `${card.cost} / ${card.power}`;
+            document.getElementById('popupCardtext').textContent = card.card_text || '無';
+
+            const tokenSection = document.getElementById('tokenSection');
+            const tokenCards = document.getElementById('tokenCards');
+            tokenSection.style.display = 'none';
+            tokenCards.innerHTML = '';
+
+            // 如果有 token_ids，就撈資料
+            if (Array.isArray(card.token_ids) && card.token_ids.length > 0) {
+                // 撈取tokens資料
+                const { data: tokens, error } = await client
+                    .from('Cards')
+                    .select('id, title_en, title_tw, cost, power, card_text, token_ids, image_url')
+                    .in('id', card.token_ids);
+
+                if (error) {
+                    console.error('Token 撈取錯誤:', error);
+                } else {
+                    console.log("Fetched Tokens: ", tokens);  // 輸出撈取到的tokens
+
+                    if (tokens && tokens.length > 0) {
+                        tokenCards.innerHTML = tokens.map(token => `
+                            <div class="token-card">
+                                <img class="token-image" src="${token.image_url || 'http://fakeimg.pl/70x100'}" alt="${token.title_en}">
+                                <p class="title" style="text-align:center; margin-top: 5px;">${token.title_tw}</p>
+                                <p class="cost-power" style="text-align:center; margin-top: 5px;">${token.cost} / ${token.power}</p>
+                            </div>
+                        `).join('');
+                        tokenSection.style.display = 'block';  // 顯示token區域
+                    } else {
+                        console.log("No tokens found for this card.");
+                    }
+                }
+            } else {
+                console.log("No token_ids found for this card.");
+            }
+
+            document.getElementById('popup').classList.add('show');
+        }
+
+
+
+        function closePopup() {
+            document.getElementById('popup').classList.remove('show');
+        }
+    </script>
+</body>
+</html>
