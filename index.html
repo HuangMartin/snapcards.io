@@ -202,7 +202,7 @@
                 data.forEach(card => {
                     const cardDiv = document.createElement('div');
                     cardDiv.classList.add('card');
-                    cardDiv.innerHTML = `<img class="card-image" src="https://huangmartin.github.io/snapcards.io/${card.image_url}" alt="${card.title_en}">`;
+                    cardDiv.innerHTML = `<img class="card-image" src="https://huangmartin.github.io/snapcards.io/img/${card.image_url}" alt="${card.title_en}">`;
                     cardDiv.addEventListener('click', () => showCardPopup(card));
                     output.appendChild(cardDiv);
                 });
@@ -255,7 +255,7 @@
                     if (tokens && tokens.length > 0) {
                         tokenCards.innerHTML = tokens.map(token => `
                             <div class="token-card">
-                                <img class="token-image" src="${token.image_url || 'http://fakeimg.pl/70x100'}" alt="${token.title_en}">
+                                <img class="token-image" src="https://huangmartin.github.io/snapcards.io/img/${token.image_url}" alt="${token.title_en}">
                                 <p class="title" style="text-align:center; margin-top: 5px;">${token.title_tw}</p>
                                 <p class="cost-power" style="text-align:center; margin-top: 5px;">${token.cost} / ${token.power}</p>
                             </div>
