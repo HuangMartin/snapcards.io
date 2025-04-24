@@ -63,8 +63,18 @@
     }
 
     .card-image {
-        width: 120px;
-        height: 160px;
+        width: 100px;
+        height: 140px;
+        object-fit: cover;
+        object-position: center;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease;
+    }
+
+    .token-image {
+        width: 50px;
+        height: 70px;
         object-fit: cover;
         object-position: center;
         border-radius: 8px;
@@ -248,7 +258,7 @@
                     if (tokens && tokens.length > 0) {
                         tokenCards.innerHTML = tokens.map(token => `
                             <div class="token-card">
-                                <img src="https://huangmartin.github.io/snapcards.io/img/${token.image_url}" alt="${token.title_en}">
+                                <img class="token-image" src="https://huangmartin.github.io/snapcards.io/img/${token.image_url}" alt="${token.title_en}">
                                 <p class="title" style="text-align:center; margin-top: 5px;">${token.title_tw}</p>
                                 <p class="cost-power" style="text-align:center; margin-top: 5px;">${token.cost} / ${token.power}</p>
                             </div>
